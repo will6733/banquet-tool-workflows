@@ -1,0 +1,652 @@
+{
+  "name": "Banquet Tool v1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6dcb0b4e-2475-4ddf-a5a8-5e7641fc49f3",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        -112
+      ],
+      "id": "e3bb93f1-6efc-44d8-8443-4cb3ad2d091b",
+      "name": "Webhook",
+      "webhookId": "6dcb0b4e-2475-4ddf-a5a8-5e7641fc49f3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"ok\": true, \"status\": \"duplicate_ignored\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1936,
+        -224
+      ],
+      "id": "08f612ab-ef6f-452a-b821-f525b6746a64",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "sendTo": "will.simons6733@gmail.com",
+        "subject": "=New Event Inquiry — {{$json.fullName}} ({{$json.partySize}})",
+        "message": "=Name: {{$json.fullName}}\nEmail: {{$json.email}}\nPreferred Date: {{$json.preferredDate}}\nParty Size: {{$json.partySize}}\nDetails: {{$json.details}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1616,
+        240
+      ],
+      "id": "be2cd71a-4d5f-4d7f-a126-c3d56e713b57",
+      "name": "Send a message",
+      "webhookId": "103c84d0-7dc0-4205-81f3-f84ee1d65e98",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LLROcxIieJz1hg2V",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "312a2878-e9b3-443c-b421-1197763e3022",
+              "name": "fullName",
+              "value": "={{ $json.body.fullName }}",
+              "type": "string"
+            },
+            {
+              "id": "bd3e621f-80e3-42c8-9f2d-3c0422e3e73e",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "f9d4a9dd-188a-43d5-b6ae-de291463f442",
+              "name": "preferredDate",
+              "value": "={{ $json.body.preferredDate }}",
+              "type": "string"
+            },
+            {
+              "id": "d2cdcd30-84ff-4990-a8fb-50c63238df37",
+              "name": "partySize",
+              "value": "={{ $json.body.partySize }}",
+              "type": "number"
+            },
+            {
+              "id": "3b143cf2-01ff-443f-84cf-bb7e20e2561f",
+              "name": "details",
+              "value": "={{ $json.body.details }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        -112
+      ],
+      "id": "9ecc4b0f-bba1-4a49-a1e3-b68344dd6dbe",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4b5e4642-fd01-4e2d-9161-2bf00c9a0fa0",
+              "leftValue": "={{$json.email}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "8a23e137-7abb-41a8-830e-3da231473f46",
+              "leftValue": "={{$json.fullName}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        288,
+        -112
+      ],
+      "id": "db692afd-77fa-4e90-91ac-1b8653663055",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"ok\": false,\n  \"message\": \"Missing required fields\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        -16
+      ],
+      "id": "fc0d5e48-a58c-413b-9782-68511063dc05",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  for (const [k, v] of Object.entries(item.json)) {\n    if (typeof v === 'string') item.json[k] = v.trim();\n  }\n  if (!item.json.details) item.json.details = \"(none provided)\";\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -112
+      ],
+      "id": "a3708087-2881-418a-be48-16b9954bac4b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json.email}}",
+        "subject": "We received your private dining request",
+        "message": "=Hi {{$json.fullName}},\n\nThank you for your inquiry for {{$json.partySize}} guests on {{$json.preferredDate}}.\n\nOur events team will contact you shortly to confirm availability.\n\nBest,\nChicago Steakhouse",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        0
+      ],
+      "id": "72ba6488-6a5c-41ce-bb97-72641da205a6",
+      "name": "Send a message1",
+      "webhookId": "f440fea1-cee7-4c0a-a1f4-e20926d99d9b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LLROcxIieJz1hg2V",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE",
+          "mode": "list",
+          "cachedResultName": "Private Dining Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "submittedAt": "={{$now}}",
+            "fullName": "={{$json.fullName}}",
+            "email": "={{$json.email}}",
+            "preferredDate": "={{$json.preferredDate}}",
+            "partySize": "={{$json.partySize}}",
+            "details": "={{$json.details}}",
+            "source": "website",
+            "page": "private-dining",
+            "fingerprint": "={{$json.fingerprint}}",
+            "status": "new",
+            "leadId": "={{$now.toISO() + '-' + $json.fingerprint}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "submittedAt",
+              "displayName": "submittedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preferredDate",
+              "displayName": "preferredDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "partySize",
+              "displayName": "partySize",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "page",
+              "displayName": "page",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fingerprint",
+              "displayName": "fingerprint",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "leadId",
+              "displayName": "leadId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1408,
+        80
+      ],
+      "id": "25892ea6-ca48-4702-acbd-5e580e6629b0",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "UqhtzTpQrZdrjm1l",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const j = item.json;\n\n  const email = (j.email || '').trim().toLowerCase();\n  const date = (j.preferredDate || '').trim();\n  const party = String(j.partySize ?? '').trim();\n\n  j.fingerprint = `${email}|${date}|${party}`;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -208
+      ],
+      "id": "b28ce251-60a2-416d-81b9-a028a8d54e37",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE",
+          "mode": "list",
+          "cachedResultName": "Private Dining Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mlBvoOas7ii-nfZfaX9IQVrTlL38xfoTgr18i6_ZSFE/edit#gid=0"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically"
+            }
+          },
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          },
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        -208
+      ],
+      "id": "a2be2fe4-3155-429d-9107-e290199f80b7",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "UqhtzTpQrZdrjm1l",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get original submission\nconst submission = $items(\"Code in JavaScript1\")[0].json;\nconst submissionFp = String(submission.fingerprint || '').trim();\n\n// Rows returned from sheet\nconst rows = $input.all().map(i => i.json);\n\n// Determine duplicate safely\nlet isDuplicate = false;\n\nif (submissionFp && rows.length > 0) {\n  isDuplicate = rows.some(r =>\n    String(r.fingerprint || '').trim() === submissionFp\n  );\n}\n\n// Return submission + duplicate flag\nreturn [{\n  json: {\n    ...submission,\n    duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -208
+      ],
+      "id": "e0e6214c-61b1-446d-8c38-71fbee74bedc",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "963dca87-7742-4d94-b4ef-886892db0546",
+              "leftValue": "={{$json.duplicate}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        -208
+      ],
+      "id": "d6cedbf8-8d41-420c-9c8b-729ab4401774",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "from": "+18338482619",
+        "to": "+12103140480",
+        "message": "=New Private Dining Lead:\nName: {{$json.fullName}}\nGuests: {{$json.partySize}}\nDate: {{$json.preferredDate}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        480
+      ],
+      "id": "7e9e2ab9-f98e-4c5d-9c1e-a17dc5c81321",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "3CbgpJ1T9wuKbsBg",
+          "name": "Twilio account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        []
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "410aad89-a824-445b-b924-51d9b9ea2f33",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e5e93aa9b39ca90173425e753630083b7273a49c17e999a1f7aca9c662de631b"
+  },
+  "id": "e3n5U1g0XWC5CHmj",
+  "tags": []
+}
